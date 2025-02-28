@@ -157,22 +157,49 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   int countdown = 3;
   Timer? countdownTimer;
   late List<List<AnimationController>> _controllers;
+  late List<List<Animation<double>>> _fadeAnimations;
 
-  @override
-  void initState() {
-    super.initState();
-    initBoard();
-    startHighlight();
-    startCountdown();
-    _controllers = List.generate(widget.gridSize, (i) =>
-      List.generate(widget.gridSize, (j) =>
-        AnimationController(
-          duration: const Duration(milliseconds: 300),
-          vsync: this,
-        )
+@override
+void initState() {
+  super.initState();
+
+  // 1. 初始化 _controllers 與 _fadeAnimations
+  _controllers = List.generate(widget.gridSize, (i) =>
+    List.generate(widget.gridSize, (j) =>
+      AnimationController(
+        duration: const Duration(milliseconds: 300),
+        vsync: this,
       )
-    );
+    )
+  );
+ _fadeAnimations = List.generate(widget.gridSize, (i) =>
+  List.generate(widget.gridSize, (j) =>
+    Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _controllers[i][j],
+        curve: Curves.easeIn,
+      ),
+    )
+  )
+);
+
+
+  // 先建立棋盤資料
+  initBoard();
+  
+  // 2. 把所有格子的 AnimationController 都直接跳到 value = 1
+  //    這樣正常格就不會是透明，而是直接顯示
+  for (var row in _controllers) {
+    for (var controller in row) {
+      controller.value = 1;  // 一開始就直接顯示
+    }
   }
+
+  // 接著再做 highlight 的流程
+  startHighlight();
+  startCountdown();
+}
+    
 
   @override
   void dispose() {
@@ -204,6 +231,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     setState(() {
       for (var point in activeCells) {
         boardStates[point.x][point.y] = CellState.highlighted;
+        _controllers[point.x][point.y].forward();
       }
     });
     Timer(Duration(seconds: 3), () {
@@ -211,6 +239,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         setState(() {
           for (var point in activeCells) {
             boardStates[point.x][point.y] = CellState.normal;
+            _controllers[point.x][point.y].reverse();
           }
         });
       }
@@ -281,20 +310,20 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     });
   }
 
-  Color getColor(CellState state) {
+  Image getImage(CellState state) {
     switch (state) {
       case CellState.normal:
-        return Colors.grey[800]!;
+        return Image.asset('assets/images/normal.png');
       case CellState.highlighted:
-        return Colors.blue;
+        return Image.asset('assets/images/selected.png');
       case CellState.selected:
-        return Colors.orange;
+        return Image.asset('assets/images/selected.png');
       case CellState.correct:
-        return Colors.green;
+        return Image.asset('assets/images/correct.png');
       case CellState.wrong:
-        return Colors.red;
+        return Image.asset('assets/images/wrong.png');
       case CellState.missed:
-        return Colors.yellow;
+        return Image.asset('assets/images/missed.png');
     }
   }
 
@@ -338,13 +367,9 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                         ),
                       ),
                       child: Center(
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: getColor(boardStates[i][j]),
-                          ),
+                        child: FadeTransition(
+                          opacity: _fadeAnimations[i][j],
+                          child: getImage(boardStates[i][j]),
                         ),
                       ),
                     ),
