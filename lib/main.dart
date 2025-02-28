@@ -157,6 +157,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
   int countdown = 3;
   Timer? countdownTimer;
   late List<List<AnimationController>> _controllers;
+  late List<List<Animation<double>>> _fadeAnimations;
 
   @override
   void initState() {
@@ -169,6 +170,16 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         AnimationController(
           duration: const Duration(milliseconds: 300),
           vsync: this,
+        )
+      )
+    );
+    _fadeAnimations = List.generate(widget.gridSize, (i) =>
+      List.generate(widget.gridSize, (j) =>
+        Tween<double>(begin: 0, end: 1).animate(
+          CurvedAnimation(
+            parent: _controllers[i][j],
+            curve: Curves.easeIn,
+          ),
         )
       )
     );
@@ -204,6 +215,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
     setState(() {
       for (var point in activeCells) {
         boardStates[point.x][point.y] = CellState.highlighted;
+        _controllers[point.x][point.y].forward();
       }
     });
     Timer(Duration(seconds: 3), () {
@@ -211,6 +223,7 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
         setState(() {
           for (var point in activeCells) {
             boardStates[point.x][point.y] = CellState.normal;
+            _controllers[point.x][point.y].reverse();
           }
         });
       }
@@ -330,13 +343,8 @@ class _GamePageState extends State<GamePage> with TickerProviderStateMixin {
                   int j = index % n;
                   return GestureDetector(
                     onTap: () => onCellTap(i, j),
-                    child: ScaleTransition(
-                      scale: Tween(begin: 1.0, end: 1.2).animate(
-                        CurvedAnimation(
-                          parent: _controllers[i][j],
-                          curve: Curves.easeInOut,
-                        ),
-                      ),
+                    child: FadeTransition(
+                      opacity: _fadeAnimations[i][j],
                       child: Center(
                         child: Container(
                           width: 30,

@@ -1,16 +1,25 @@
-# mem_game
+🧠 記憶小遊戲 (Memory Game)
+這是一款簡單的 記憶力訓練小遊戲，玩家需要在短時間內記住哪些圓形曾經變色，然後正確地點選它們！適合所有年齡層，用來訓練記憶力、觀察力和專注力。
 
-A new Flutter project.
 
-## Getting Started
+🎮 遊戲玩法
+選擇遊戲格子數 (3x3 ~ 6x6)
 
-This project is a starting point for a Flutter application.
+點擊選擇 3x3、4x4、5x5 或 6x6 的遊戲模式。
+遊戲開始時，隨機 n ~ 2n 個圓形會高亮顯示 3 秒。
+然後所有圓形會變回原本的顏色。
+倒數開始 (3 秒)
 
-A few resources to get you started if this is your first Flutter project:
+倒數結束前，不能點擊任何圓形。
+倒數結束後，玩家開始選擇 剛剛變色的圓形。
+送出答案
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+點擊後，答案會被檢查：
+✅ 答對 的圓形 → 綠色
+❌ 多選 的圓形 → 黑色
+⚠️ 漏選 的圓形 → 黃色
+結算結果
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+全對：顯示「全對了！恭喜您！」
+正確率 ≥ 70%：顯示「再接再厲！快成功了！」
+低於 70%：顯示「再來一次吧！這次一定能成功的！」
